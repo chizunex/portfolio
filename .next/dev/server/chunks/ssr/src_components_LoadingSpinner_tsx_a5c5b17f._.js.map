@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/bradl/Desktop/portfolio/src/components/LoadingSpinner.tsx"],"sourcesContent":["'use client'\r\n\r\nimport { useEffect, useState } from 'react'\r\n\r\nexport default function LoadingSpinner() {\r\n  const [canHide, setCanHide] = useState(false)\r\n\r\n  useEffect(() => {\r\n    // Minimum 1 second display time\r\n    const timer = setTimeout(() => {\r\n      setCanHide(true)\r\n    }, 1000)\r\n\r\n    return () => clearTimeout(timer)\r\n  }, [])\r\n\r\n  // Always show until minimum time has elapsed\r\n  // Next.js will handle unmounting when route is ready\r\n  return (\r\n    <div className=\"fixed inset-0 bg-zinc-900/95 backdrop-blur-sm z-50 flex items-center justify-center\">\r\n      <div className=\"relative\">\r\n        <div className=\"w-16 h-16 border-2 border-zinc-100 border-t-transparent rounded-full animate-spin\" />\r\n      </div>\r\n    </div>\r\n  )\r\n}\r\n\r\n"],"names":[],"mappings":";;;;;AAEA;AAFA;;;AAIe,SAAS;IACtB,MAAM,CAAC,SAAS,WAAW,GAAG,IAAA,iNAAQ,EAAC;IAEvC,IAAA,kNAAS,EAAC;QACR,gCAAgC;QAChC,MAAM,QAAQ,WAAW;YACvB,WAAW;QACb,GAAG;QAEH,OAAO,IAAM,aAAa;IAC5B,GAAG,EAAE;IAEL,6CAA6C;IAC7C,qDAAqD;IACrD,qBACE,8OAAC;QAAI,WAAU;kBACb,cAAA,8OAAC;YAAI,WAAU;sBACb,cAAA,8OAAC;gBAAI,WAAU;;;;;;;;;;;;;;;;AAIvB"}}]
+}
