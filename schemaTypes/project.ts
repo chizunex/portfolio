@@ -1,15 +1,16 @@
-// schemas/project.ts
-export default {
+import {defineField, defineType} from 'sanity'
+
+export default defineType({
   name: 'project',
   title: 'Project',
   type: 'document',
   fields: [
-    {
+    defineField({
       name: 'title',
       title: 'Title',
       type: 'string',
-    },
-    {
+    }),
+    defineField({
       name: 'slug',
       title: 'Slug',
       type: 'slug',
@@ -17,24 +18,24 @@ export default {
         source: 'title',
         maxLength: 96,
       },
-    },
-    {
+    }),
+    defineField({
       name: 'githubURL',
       title: 'GitHub URL',
       type: 'url',
-    },
-    {
+    }),
+    defineField({
       name: 'projectImage',
       title: 'Project Image',
       type: 'image',
       options: {
-        hotspot: true, // Allows you to crop the image nicely
+        hotspot: true,
       },
-    },
-    {
+    }),
+    defineField({
       name: 'description',
       title: 'Description',
-      type: 'text', // Simple text block
-    },
+      type: 'text',
+    }),
   ],
-}
+})
