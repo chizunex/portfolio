@@ -7,10 +7,10 @@ export default function HomePage() {
     <div className="min-h-[calc(100vh-73px)] flex items-center justify-center px-6">
       <div className="text-center max-w-3xl">
         <MonkeyTypeTyping
-          h1Text="Hey! I'm Bradley."
+          h1Text="Hey! I'm Bradley"
           pTexts={[
-            'Currently a masters student studying computer science.',
-            'Working on anything that piques my interest.',
+            'Currently a masters student studying computer science',
+            'Working on anything that piques my interest',
           ]}
         />
         <div className="flex items-center justify-center gap-4 flex-wrap">

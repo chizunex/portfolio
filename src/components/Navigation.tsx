@@ -5,8 +5,11 @@ export default function Navigation() {
     <nav className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-xl font-semibold text-zinc-100 hover:text-white transition-colors">
-            Portfolio
+          <Link
+            href="/"
+            className="text-xl font-semibold text-zinc-100 hover:text-white transition-colors"
+          >
+            Bradley.
           </Link>
           <div className="flex items-center gap-6">
             <Link
@@ -33,4 +36,3 @@ export default function Navigation() {
     </nav>
   )
 }
-
