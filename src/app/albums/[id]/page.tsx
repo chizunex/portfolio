@@ -6,16 +6,17 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 interface AlbumPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export const revalidate = 0 // Disable caching - fetch fresh data on every request
 
 export default async function AlbumPage({ params }: AlbumPageProps) {
+  const { id } = await params
   const albums: Album[] = await client.fetch<Album[]>(albumsQuery, {}, { cache: 'no-store' })
-  const album = albums.find((a) => a._id === params.id)
+  const album = albums.find((a) => a._id === id)
 
   if (!album) {
     notFound()
