@@ -27,3 +27,58 @@
   animation: spin 1s linear infinite;
 }
 
+@keyframes pulse-highlight {
+  0%,
+  100% {
+    background-color: rgba(244, 244, 245, 0.3);
+  }
+  50% {
+    background-color: rgba(244, 244, 245, 0.5);
+  }
+}
+
+@keyframes pulse-highlight-dark {
+  0%,
+  100% {
+    background-color: rgba(161, 161, 170, 0.3);
+  }
+  50% {
+    background-color: rgba(161, 161, 170, 0.5);
+  }
+}
+
+.animate-pulse-highlight {
+  animation: pulse-highlight 1.5s ease-in-out infinite;
+  background-color: rgba(244, 244, 245, 0.3);
+}
+
+.animate-pulse-highlight-dark {
+  animation: pulse-highlight-dark 1.5s ease-in-out infinite;
+  background-color: rgba(161, 161, 170, 0.3);
+}
+
+/* Smooth transition for highlight movement */
+.typing-char {
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.15s ease-in-out;
+  will-change: background-color;
+}
+
+/* Confetti explosion animation */
+@keyframes confetti-explode {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--confetti-x, 0), var(--confetti-y, 0))
+      rotate(var(--confetti-rotate, 0deg));
+  }
+}
+
+.confetti-particle {
+  animation: confetti-explode var(--confetti-duration, 2s) ease-out var(--confetti-delay, 0s)
+    forwards;
+}
