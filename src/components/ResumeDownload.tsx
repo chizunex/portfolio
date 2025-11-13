@@ -40,10 +40,10 @@ export default async function ResumeDownload() {
     <a
       href={resume.resumeUrl}
       download={resume.fileName || 'resume.pdf'}
-      className="inline-flex items-center gap-2 px-8 py-3 border border-zinc-700 text-zinc-300 hover:border-zinc-600 hover:text-zinc-100 transition-all duration-200 text-sm font-medium"
+      className="button-hover-fill inline-flex items-center gap-2 px-8 py-3 border border-zinc-700 text-sm font-medium text-zinc-200"
     >
       <svg
-        className="w-4 h-4"
+        className="w-4 h-4 relative z-10 transition-colors duration-300"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -56,7 +56,7 @@ export default async function ResumeDownload() {
           d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
         />
       </svg>
-      Resume
+      <span className="relative z-10 transition-colors duration-300">Resume</span>
     </a>
   )
 }

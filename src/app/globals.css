@@ -82,3 +82,120 @@
   animation: confetti-explode var(--confetti-duration, 2s) ease-out var(--confetti-delay, 0s)
     forwards;
 }
+
+body.custom-cursor-active {
+  cursor: none;
+}
+
+body.custom-cursor-active * {
+  cursor: none !important;
+}
+
+.custom-cursor-follow,
+.custom-cursor-point {
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
+}
+
+body.custom-cursor-visible .custom-cursor-follow {
+  opacity: 0.4;
+}
+
+body.custom-cursor-visible .custom-cursor-point {
+  opacity: 1;
+}
+
+body.custom-cursor-visible.custom-cursor-interactive .custom-cursor-follow {
+  opacity: 0.55;
+}
+
+.custom-cursor-follow-inner,
+.custom-cursor-point-inner {
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.22s ease-out,
+    border-color 0.22s ease-out;
+}
+
+body.custom-cursor-interactive .custom-cursor-follow-inner {
+  transform: scale(1.35);
+  background-color: rgba(244, 244, 245, 0.18);
+  border-color: rgba(244, 244, 245, 0.55);
+}
+
+body.custom-cursor-pressed .custom-cursor-follow-inner {
+  transform: scale(0.75);
+}
+
+body.custom-cursor-interactive.custom-cursor-pressed .custom-cursor-follow-inner {
+  transform: scale(0.65);
+}
+
+body.custom-cursor-interactive .custom-cursor-point-inner {
+  transform: scale(5.4);
+  background-color: rgb(24 24 27);
+}
+
+body.custom-cursor-pressed .custom-cursor-point-inner {
+  transform: scale(0.6);
+}
+
+body.custom-cursor-interactive.custom-cursor-pressed .custom-cursor-point-inner {
+  transform: scale(2.6);
+}
+
+.hero-draw-surface {
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+}
+
+.hero-draw-surface input,
+.hero-draw-surface textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.hero-draw-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: var(--hero-canvas-bg, #18181b);
+}
+
+.button-hover-fill {
+  position: relative;
+  overflow: hidden;
+  color: rgb(228 228 231);
+  transition:
+    color 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.button-hover-fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(244, 244, 245, 0.95);
+  transform: translateY(105%);
+  transform-origin: bottom;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 1;
+}
+
+.button-hover-fill:hover {
+  color: rgb(24 24 27);
+  border-color: rgba(244, 244, 245, 0.75);
+}
+
+.button-hover-fill:hover::before {
+  transform: translateY(-2%);
+}
+
+.button-hover-fill > * {
+  position: relative;
+  z-index: 2;
+}

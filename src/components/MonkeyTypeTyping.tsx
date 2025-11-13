@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useState, useRef} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 
 interface MonkeyTypeTypingProps {
   h1Text: string
@@ -177,6 +177,13 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
   } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const surfaceRef = useRef<HTMLElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const canvasCtxRef = useRef<CanvasRenderingContext2D | null>(null)
+  const isDrawingRef = useRef(false)
+  const lastPointRef = useRef<{x: number; y: number} | null>(null)
+  const pointerIdRef = useRef<number | null>(null)
+  const heroBackgroundColorRef = useRef<string>('#18181b')
   const charRefs = useRef<Map<string, HTMLSpanElement>>(new Map())
   const startTimeRef = useRef<number | null>(null)
   const wpmIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -186,6 +193,241 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
   const keyPressBuffersRef = useRef<AudioBuffer[]>([])
   const backspaceBufferRef = useRef<AudioBuffer | null>(null)
   const audioLoadPromiseRef = useRef<Promise<void> | null>(null)
+
+  const initializeCanvas = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const canvas = canvasRef.current
+    const container = containerRef.current
+    const surface = surfaceRef.current ?? container
+
+    if (!canvas || !container || !surface) {
+      return
+    }
+
+    const surfaceRect = surface.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+    const dpr = window.devicePixelRatio || 1
+
+    canvas.width = Math.max(1, Math.round(surfaceRect.width * dpr))
+    canvas.height = Math.max(1, Math.round(surfaceRect.height * dpr))
+    canvas.style.width = `${surfaceRect.width}px`
+    canvas.style.height = `${surfaceRect.height}px`
+    canvas.style.left = `${surfaceRect.left - containerRect.left}px`
+    canvas.style.top = `${surfaceRect.top - containerRect.top}px`
+    canvas.style.position = 'absolute'
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      return
+    }
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.scale(dpr, dpr)
+
+    const computedBg =
+      (typeof window !== 'undefined' && window.getComputedStyle(document.body).backgroundColor) ||
+      '#18181b'
+    heroBackgroundColorRef.current = computedBg
+
+    if (surface instanceof HTMLElement) {
+      surface.style.setProperty('--hero-canvas-bg', heroBackgroundColorRef.current)
+    }
+
+    ctx.fillStyle = heroBackgroundColorRef.current
+    ctx.fillRect(0, 0, surfaceRect.width, surfaceRect.height)
+    canvas.style.backgroundColor = heroBackgroundColorRef.current
+
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.lineWidth = 2.2
+    ctx.strokeStyle = 'rgba(161, 161, 170, 0.45)'
+    ctx.fillStyle = ctx.strokeStyle
+    canvasCtxRef.current = ctx
+  }, [])
+
+  const isInteractiveElement = useCallback((element: EventTarget | null) => {
+    if (!(element instanceof Element)) {
+      return false
+    }
+    return Boolean(
+      element.closest(
+        'a, button, input, textarea, select, [role="button"], [data-draw-ignore="true"], [data-draw-ignore]',
+      ),
+    )
+  }, [])
+
+  const getPointerPosition = useCallback((clientX: number, clientY: number) => {
+    const surface = surfaceRef.current
+    if (!surface) {
+      return null
+    }
+    const rect = surface.getBoundingClientRect()
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+    }
+  }, [])
+
+  const beginStroke = useCallback((point: {x: number; y: number}) => {
+    const ctx = canvasCtxRef.current
+    if (!ctx) {
+      return
+    }
+    ctx.beginPath()
+    ctx.moveTo(point.x, point.y)
+  }, [])
+
+  const extendStroke = useCallback((point: {x: number; y: number}) => {
+    const ctx = canvasCtxRef.current
+    if (!ctx) {
+      return
+    }
+    ctx.lineTo(point.x, point.y)
+    ctx.stroke()
+  }, [])
+
+  const handlePointerDown = useCallback(
+    (event: PointerEvent) => {
+      if (event.button !== 0 || isInteractiveElement(event.target)) {
+        return
+      }
+      const point = getPointerPosition(event.clientX, event.clientY)
+      if (!point) {
+        return
+      }
+      const surface = surfaceRef.current
+      if (surface) {
+        try {
+          surface.setPointerCapture(event.pointerId)
+        } catch {
+          // no-op
+        }
+      }
+      pointerIdRef.current = event.pointerId
+      isDrawingRef.current = true
+      lastPointRef.current = point
+      beginStroke(point)
+      event.preventDefault()
+    },
+    [beginStroke, getPointerPosition, isInteractiveElement],
+  )
+
+  const handlePointerMove = useCallback(
+    (event: PointerEvent) => {
+      if (!isDrawingRef.current) {
+        return
+      }
+      const point = getPointerPosition(event.clientX, event.clientY)
+      if (!point) {
+        return
+      }
+      extendStroke(point)
+      lastPointRef.current = point
+      event.preventDefault()
+    },
+    [extendStroke, getPointerPosition],
+  )
+
+  const stopDrawing = useCallback(() => {
+    if (pointerIdRef.current !== null && surfaceRef.current) {
+      try {
+        surfaceRef.current.releasePointerCapture(pointerIdRef.current)
+      } catch {
+        // no-op
+      }
+    }
+    isDrawingRef.current = false
+    lastPointRef.current = null
+    pointerIdRef.current = null
+  }, [])
+
+  const handlePointerUp = useCallback(
+    (event: PointerEvent) => {
+      if (!isDrawingRef.current) {
+        return
+      }
+      stopDrawing()
+      event.preventDefault()
+    },
+    [stopDrawing],
+  )
+
+  const handlePointerLeave = useCallback(
+    (event: PointerEvent) => {
+      if (!isDrawingRef.current) {
+        return
+      }
+      if (event.target === surfaceRef.current) {
+        stopDrawing()
+      }
+    },
+    [stopDrawing],
+  )
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) {
+      return
+    }
+
+    const surface =
+      (container.closest('[data-hero-surface="true"]') as HTMLElement | null) ?? container
+
+    surfaceRef.current = surface
+
+    initializeCanvas()
+
+    const handleResize = () => {
+      initializeCanvas()
+    }
+
+    let resizeObserver: ResizeObserver | null = null
+    let resizeListenerAdded = false
+
+    if (surface && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(handleResize)
+      resizeObserver.observe(surface)
+    } else {
+      window.addEventListener('resize', handleResize)
+      resizeListenerAdded = true
+    }
+
+    surface?.addEventListener('pointerdown', handlePointerDown as EventListener, {
+      passive: false,
+    })
+    surface?.addEventListener('pointermove', handlePointerMove as EventListener, {
+      passive: false,
+    })
+    surface?.addEventListener('pointerleave', handlePointerLeave as EventListener)
+
+    window.addEventListener('pointerup', handlePointerUp as EventListener)
+    window.addEventListener('pointercancel', handlePointerUp as EventListener)
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect()
+      }
+      if (resizeListenerAdded) {
+        window.removeEventListener('resize', handleResize)
+      }
+      surface?.removeEventListener('pointerdown', handlePointerDown as EventListener)
+      surface?.removeEventListener('pointermove', handlePointerMove as EventListener)
+      surface?.removeEventListener('pointerleave', handlePointerLeave as EventListener)
+      window.removeEventListener('pointerup', handlePointerUp as EventListener)
+      window.removeEventListener('pointercancel', handlePointerUp as EventListener)
+      stopDrawing()
+    }
+  }, [
+    handlePointerDown,
+    handlePointerLeave,
+    handlePointerMove,
+    handlePointerUp,
+    initializeCanvas,
+    stopDrawing,
+  ])
 
   const ensureAudioContext = () => {
     if (typeof window === 'undefined') {
@@ -866,152 +1108,143 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
   }
 
   return (
-    <div className={`${className} relative z-10`} ref={containerRef}>
-      {/* Confetti Explosion */}
-      {showConfetti && confettiCenter && (
-        <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-          {confettiParticles.map((particle) => {
-            const angleRad = (particle.angle * Math.PI) / 180
-            const x = Math.cos(angleRad) * particle.distance
-            const y = Math.sin(angleRad) * particle.distance
-            return (
-              <div
-                key={particle.id}
-                className="absolute confetti-particle"
-                style={
-                  {
-                    left: `${confettiCenter.x}px`,
-                    top: `${confettiCenter.y}px`,
-                    width: '8px',
-                    height: '4px',
-                    transform: 'translate(-50%, -50%)',
-                    backgroundColor: particle.color,
-                    '--confetti-x': `${x}px`,
-                    '--confetti-y': `${y}px`,
-                    '--confetti-rotate': `${particle.angle + 720}deg`,
-                    '--confetti-duration': `${particle.duration}s`,
-                    '--confetti-delay': `${particle.delay}s`,
-                  } as React.CSSProperties
-                }
-              />
-            )
-          })}
-        </div>
-      )}
-
-      {/* WPM Counter - positioned absolutely to not shift layout */}
-      {hasStarted && (
-        <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-center mb-4"
-          style={{marginTop: '-15px'}}
-        >
-          {/* Retry Icon - positioned absolutely above WPM to not shift layout */}
-          {isBeat && (
-            <div className="mb-2">
-              <button
-                onClick={handleRetry}
-                className="inline-flex items-center justify-center w-8 h-8 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
-                aria-label="Retry"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-          <div className="text-2xl md:text-3xl font-light text-zinc-400">
-            <span className="text-zinc-300">{wpm}</span>
-            <span className="text-zinc-500 ml-2">WPM</span>
+    <div className={`${className} relative z-10 hero-draw-surface select-none`} ref={containerRef}>
+      <canvas ref={canvasRef} className="hero-draw-canvas pointer-events-none absolute" />
+      <div className="relative z-10">
+        {/* Confetti Explosion */}
+        {showConfetti && confettiCenter && (
+          <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+            {confettiParticles.map((particle) => {
+              const angleRad = (particle.angle * Math.PI) / 180
+              const x = Math.cos(angleRad) * particle.distance
+              const y = Math.sin(angleRad) * particle.distance
+              return (
+                <div
+                  key={particle.id}
+                  className="absolute confetti-particle"
+                  style={
+                    {
+                      left: `${confettiCenter.x}px`,
+                      top: `${confettiCenter.y}px`,
+                      width: '8px',
+                      height: '4px',
+                      transform: 'translate(-50%, -50%)',
+                      backgroundColor: particle.color,
+                      '--confetti-x': `${x}px`,
+                      '--confetti-y': `${y}px`,
+                      '--confetti-rotate': `${particle.angle + 720}deg`,
+                      '--confetti-duration': `${particle.duration}s`,
+                      '--confetti-delay': `${particle.delay}s`,
+                    } as React.CSSProperties
+                  }
+                />
+              )
+            })}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Invisible input for typing - positioned off-screen but still focusable */}
-      {!isBeat && (
-        <input
-          ref={inputRef}
-          type="text"
-          value={userInput}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-auto z-50"
-          autoFocus
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck="false"
-          onBlur={(e) => {
-            // Re-focus after a short delay to allow clicking links
-            if (!isComplete && !isBeat) {
-              setTimeout(() => {
-                if (inputRef.current && document.activeElement?.tagName !== 'A') {
-                  inputRef.current.focus()
-                }
-              }, 100)
-            }
-          }}
-        />
-      )}
+        {/* WPM Counter - positioned absolutely to not shift layout */}
+        {hasStarted && (
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-center mb-4"
+            style={{marginTop: '-15px'}}
+          >
+            {/* Retry Icon - positioned absolutely above WPM to not shift layout */}
+            {isBeat && (
+              <div className="mb-2">
+                <button
+                  data-draw-ignore="true"
+                  onClick={handleRetry}
+                  className="inline-flex items-center justify-center w-8 h-8 text-zinc-400 hover:text-zinc-100 transition-colors duration-200"
+                  aria-label="Retry"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+              </div>
+            )}
+            <div className="text-2xl md:text-3xl font-light text-zinc-400">
+              <span className="text-zinc-300">{wpm}</span>
+              <span className="text-zinc-500 ml-2">WPM</span>
+            </div>
+          </div>
+        )}
 
-      {/* Sliding highlight element */}
-      {highlightStyle && !isComplete && !isBeat && (
-        <div
-          className={`absolute pointer-events-none z-10 ${
-            currentElementIndex === 0 ? 'animate-pulse-highlight' : 'animate-pulse-highlight-dark'
-          }`}
-          style={{
-            left: `${highlightStyle.left}px`,
-            top: `${highlightStyle.top}px`,
-            width: `${highlightStyle.width}px`,
-            height: `${highlightStyle.height}px`,
-            opacity: highlightStyle.opacity,
-            transition:
-              'left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), top 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), height 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          }}
-        />
-      )}
+        {/* Invisible input for typing - positioned off-screen but still focusable */}
+        {!isBeat && (
+          <input
+            ref={inputRef}
+            type="text"
+            value={userInput}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            className="fixed top-0 left-0 w-1 h-1 opacity-0 pointer-events-auto z-50"
+            autoFocus
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+            onBlur={(e) => {
+              // Re-focus after a short delay to allow clicking links
+              if (!isComplete && !isBeat) {
+                setTimeout(() => {
+                  if (inputRef.current && document.activeElement?.tagName !== 'A') {
+                    inputRef.current.focus()
+                  }
+                }, 100)
+              }
+            }}
+          />
+        )}
 
-      <h1 className="text-5xl md:text-6xl font-light text-zinc-100 mb-4 tracking-tight relative">
-        {renderTextWithFeedback(h1Text, 0, true)}
-      </h1>
-      <div className="relative min-h-[140px] flex flex-col items-center justify-center gap-3 mb-8">
-        {/* Show original paragraphs OR random words, not both */}
-        {randomWords.length === 0 ? (
-          // Original paragraphs
-          pTexts.map((text, index) => (
-            <p
-              key={index}
-              className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center"
-            >
-              {renderTextWithFeedback(text, index + 1, false)}
-            </p>
-          ))
-        ) : (
-          // Random words displayed in two paragraphs (replacing original paragraphs)
-          <>
-            <p
-              className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center"
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: '100%',
-              }}
-            >
-              {line1WordArray.map((word, wordIdx) => renderRandomWord(word, wordIdx))}
-            </p>
-            {line2WordArray.length > 0 && (
+        {/* Sliding highlight element */}
+        {highlightStyle && !isComplete && !isBeat && (
+          <div
+            className={`absolute pointer-events-none z-10 ${
+              currentElementIndex === 0 ? 'animate-pulse-highlight' : 'animate-pulse-highlight-dark'
+            }`}
+            style={{
+              left: `${highlightStyle.left}px`,
+              top: `${highlightStyle.top}px`,
+              width: `${highlightStyle.width}px`,
+              height: `${highlightStyle.height}px`,
+              opacity: highlightStyle.opacity,
+              transition:
+                'left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), top 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), height 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            }}
+          />
+        )}
+
+        <h1 className="text-5xl md:text-6xl font-light text-zinc-100 mb-4 tracking-tight relative">
+          {renderTextWithFeedback(h1Text, 0, true)}
+        </h1>
+        <div className="relative min-h-[140px] flex flex-col items-center justify-center gap-3 mb-8">
+          {/* Show original paragraphs OR random words, not both */}
+          {randomWords.length === 0 ? (
+            // Original paragraphs
+            pTexts.map((text, index) => (
+              <p
+                key={index}
+                className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center"
+              >
+                {renderTextWithFeedback(text, index + 1, false)}
+              </p>
+            ))
+          ) : (
+            // Random words displayed in two paragraphs (replacing original paragraphs)
+            <>
               <p
                 className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center"
                 style={{
@@ -1021,13 +1254,26 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
                   maxWidth: '100%',
                 }}
               >
-                {line2WordArray.map((word, wordIdx) =>
-                  renderRandomWord(word, wordsPerLine + wordIdx),
-                )}
+                {line1WordArray.map((word, wordIdx) => renderRandomWord(word, wordIdx))}
               </p>
-            )}
-          </>
-        )}
+              {line2WordArray.length > 0 && (
+                <p
+                  className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center"
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '100%',
+                  }}
+                >
+                  {line2WordArray.map((word, wordIdx) =>
+                    renderRandomWord(word, wordsPerLine + wordIdx),
+                  )}
+                </p>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

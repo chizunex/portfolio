@@ -4,8 +4,11 @@ import MonkeyTypeTyping from '@/components/MonkeyTypeTyping'
 
 export default function HomePage() {
   return (
-    <div className="min-h-[calc(100vh-73px)] flex items-center justify-center px-6">
-      <div className="text-center max-w-3xl">
+    <div
+      className="relative min-h-[calc(100vh-73px)] flex items-center justify-center px-6 overflow-hidden"
+      data-hero-surface="true"
+    >
+      <div className="relative z-10 text-center max-w-3xl">
         <MonkeyTypeTyping
           h1Text="Hey! I'm Bradley"
           pTexts={[
@@ -13,14 +16,16 @@ export default function HomePage() {
             'Working on anything that piques my interest',
           ]}
         />
-        <div className="flex items-center justify-center gap-4 flex-wrap">
+        <div className="relative z-20 flex items-center justify-center gap-4 flex-wrap">
           <Link
             href="/projects"
-            className="inline-flex items-center gap-2 px-8 py-3 border border-zinc-700 text-zinc-300 hover:border-zinc-600 hover:text-zinc-100 transition-all duration-200 text-sm font-medium"
+            className="button-hover-fill inline-flex items-center gap-2 px-8 py-3 border border-zinc-700 text-sm font-medium text-zinc-200"
           >
-            View Projects
+            <span className="relative z-10 flex items-center gap-2 text-inherit transition-colors duration-300">
+              View Projects
+            </span>
             <svg
-              className="w-4 h-4"
+              className="w-4 h-4 relative z-10 transition-colors duration-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
