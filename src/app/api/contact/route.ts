@@ -22,9 +22,6 @@ function checkRateLimit(ip: string): boolean {
   return true
 }
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST(request: NextRequest) {
   try {
     // Get client IP for rate limiting
@@ -68,6 +65,8 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    const resend = new Resend(process.env.RESEND_API_KEY)
 
     // Get recipient email from environment variable, or use a default
     const recipientEmail = process.env.CONTACT_EMAIL || process.env.RESEND_FROM_EMAIL || 'your-email@example.com'
