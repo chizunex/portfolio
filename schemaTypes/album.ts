@@ -67,7 +67,7 @@ export default defineType({
       return {
         title: title || 'Untitled Album',
         subtitle: date ? new Date(date).toLocaleDateString() : 'No date',
-        media,
+        media: media as any,
       }
     },
   },

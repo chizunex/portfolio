@@ -1,0 +1,3 @@
+module.exports=[71844,a=>{"use strict";var b=a.i(87924),c=a.i(72131);function d(){let[a,d]=(0,c.useState)(!1);return(0,c.useEffect)(()=>{let a=setTimeout(()=>{d(!0)},1e3);return()=>clearTimeout(a)},[]),(0,b.jsx)("div",{className:"fixed inset-0 bg-zinc-900/95 backdrop-blur-sm z-50 flex items-center justify-center",children:(0,b.jsx)("div",{className:"relative",children:(0,b.jsx)("div",{className:"w-16 h-16 border-2 border-zinc-100 border-t-transparent rounded-full animate-spin"})})})}a.s(["default",()=>d])}];
+
+//# sourceMappingURL=src_components_LoadingSpinner_tsx_a5c5b17f._.js.map

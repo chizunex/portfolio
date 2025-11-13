@@ -1,0 +1,10 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/albums/[id]/page": "/albums/[id]",
+  "/albums/page": "/albums",
+  "/api/contact/route": "/api/contact",
+  "/contact/page": "/contact",
+  "/page": "/",
+  "/projects/page": "/projects"
+}
