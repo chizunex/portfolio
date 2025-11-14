@@ -34,12 +34,12 @@ function LoadingProvider({ children }) {
         "LoadingProvider.useEffect": ()=>{
             // Show loading on every pathname change
             setLoading(true);
-            // Minimum 0.5 second display time
+            // Minimum 0.3 second display time
             const timer = setTimeout({
                 "LoadingProvider.useEffect.timer": ()=>{
                     setLoading(false);
                 }
-            }["LoadingProvider.useEffect.timer"], 500);
+            }["LoadingProvider.useEffect.timer"], 300);
             return ({
                 "LoadingProvider.useEffect": ()=>clearTimeout(timer)
             })["LoadingProvider.useEffect"];

@@ -175,6 +175,8 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
     const lastPointRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     const pointerIdRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     const heroBackgroundColorRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])('#18181b');
+    const canvasPositionRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const lastSurfaceSizeRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     const charRefs = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(new Map());
     const startTimeRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     const wpmIntervalRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
@@ -199,6 +201,34 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
         const surfaceRect = undefined;
         const containerRect = undefined;
         const dpr = undefined;
+        // Get the full surface height including any overflow or content that extends beyond viewport
+        // Use scrollHeight to ensure we cover the full surface, not just visible height
+        // Ensure canvas extends to the bottom of the viewport to cover footer area
+        const viewportHeight = undefined;
+        const heightFromSurfaceTop = undefined;
+        const surfaceFullHeight = undefined;
+        const surfaceFullWidth = undefined;
+        // Check if surface size actually changed - if not, skip reinitialization to prevent shifts
+        const currentSurfaceSize = undefined;
+        const sizeChanged = undefined;
+        // Calculate position relative to viewport (surface position) for stability
+        // This prevents shifts when container position changes
+        const surfaceViewportLeft = undefined;
+        const surfaceViewportTop = undefined;
+        const newWidth = undefined;
+        const newHeight = undefined;
+        // Preserve existing canvas content before resizing
+        // Convert to logical pixels for comparison
+        const oldLogicalWidth = undefined;
+        const oldLogicalHeight = undefined;
+        const newLogicalWidth = undefined;
+        const newLogicalHeight = undefined;
+        let existingImageData;
+        // Position canvas relative to viewport (surface position) instead of container
+        // This prevents shifts when container position changes
+        // Lock position once set - NEVER update unless surface size changes
+        let left;
+        let top;
         const ctx = undefined;
         const computedBg = undefined;
     }, []);
@@ -315,8 +345,15 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
         const surface = container.closest('[data-hero-surface="true"]') ?? container;
         surfaceRef.current = surface;
         initializeCanvas();
+        // Debounce resize handler to prevent rapid reinitializations
+        let resizeTimeout = null;
         const handleResize = ()=>{
-            initializeCanvas();
+            if (resizeTimeout) {
+                clearTimeout(resizeTimeout);
+            }
+            resizeTimeout = setTimeout(()=>{
+                initializeCanvas();
+            }, 50); // 50ms debounce
         };
         let resizeObserver = null;
         let resizeListenerAdded = false;
@@ -337,6 +374,9 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
         window.addEventListener('pointerup', handlePointerUp);
         window.addEventListener('pointercancel', handlePointerUp);
         return ()=>{
+            if (resizeTimeout) {
+                clearTimeout(resizeTimeout);
+            }
             if (resizeObserver) {
                 resizeObserver.disconnect();
             }
@@ -811,7 +851,7 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                 children: char === ' ' ? '\u00A0' : char
             }, key, false, {
                 fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                lineNumber: 980,
+                lineNumber: 1097,
                 columnNumber: 7
             }, this);
         if (index < currentElementIndex) {
@@ -900,7 +940,7 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
             children: renderTextWithFeedback(segment, originalTextCount + globalIdx, false, true)
         }, globalIdx, false, {
             fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-            lineNumber: 1104,
+            lineNumber: 1221,
             columnNumber: 7
         }, this);
     };
@@ -913,7 +953,7 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                 className: "hero-draw-canvas pointer-events-none absolute"
             }, void 0, false, {
                 fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                lineNumber: 1112,
+                lineNumber: 1229,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -942,13 +982,73 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                                 }
                             }, particle.id, false, {
                                 fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                lineNumber: 1122,
+                                lineNumber: 1239,
                                 columnNumber: 17
                             }, this);
                         })
                     }, void 0, false, {
                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                        lineNumber: 1116,
+                        lineNumber: 1233,
+                        columnNumber: 11
+                    }, this),
+                    !hasStarted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-center mb-4 z-[100] group",
+                        style: {
+                            marginTop: '-15px'
+                        },
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                type: "button",
+                                "data-draw-ignore": "true",
+                                className: "inline-flex items-center justify-center w-8 h-8 text-zinc-400 hover:text-zinc-300 transition-colors duration-200",
+                                "aria-label": "Help",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                    className: "w-[1.375rem] h-[1.375rem] animate-pulse-icon",
+                                    fill: "none",
+                                    stroke: "currentColor",
+                                    viewBox: "0 0 24 24",
+                                    xmlns: "http://www.w3.org/2000/svg",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                        strokeLinecap: "round",
+                                        strokeLinejoin: "round",
+                                        strokeWidth: 1.5,
+                                        d: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
+                                        lineNumber: 1282,
+                                        columnNumber: 17
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
+                                    lineNumber: 1275,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
+                                lineNumber: 1269,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-[0.972rem] text-zinc-300 font-light shadow-lg whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none",
+                                children: [
+                                    "Try Typing or Drawing!",
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 border-r border-b border-zinc-700 rotate-45"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
+                                        lineNumber: 1292,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
+                                lineNumber: 1290,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
+                        lineNumber: 1265,
                         columnNumber: 11
                     }, this),
                     hasStarted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -977,22 +1077,22 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                                             d: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                            lineNumber: 1168,
+                                            lineNumber: 1319,
                                             columnNumber: 21
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                        lineNumber: 1161,
+                                        lineNumber: 1312,
                                         columnNumber: 19
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                    lineNumber: 1155,
+                                    lineNumber: 1306,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                lineNumber: 1154,
+                                lineNumber: 1305,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1003,7 +1103,7 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                                         children: wpm
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                        lineNumber: 1179,
+                                        lineNumber: 1330,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1011,19 +1111,19 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                                         children: "WPM"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                        lineNumber: 1180,
+                                        lineNumber: 1331,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                lineNumber: 1178,
+                                lineNumber: 1329,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                        lineNumber: 1148,
+                        lineNumber: 1299,
                         columnNumber: 11
                     }, this),
                     !isBeat && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1050,7 +1150,7 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                         }
                     }, void 0, false, {
                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                        lineNumber: 1187,
+                        lineNumber: 1338,
                         columnNumber: 11
                     }, this),
                     highlightStyle && !isComplete && !isBeat && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1065,7 +1165,7 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                         }
                     }, void 0, false, {
                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                        lineNumber: 1214,
+                        lineNumber: 1365,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -1073,7 +1173,7 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                         children: renderTextWithFeedback(h1Text, 0, true)
                     }, void 0, false, {
                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                        lineNumber: 1230,
+                        lineNumber: 1381,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1084,56 +1184,44 @@ function MonkeyTypeTyping({ h1Text, pTexts, className = '' }) {
                                 children: renderTextWithFeedback(text, index + 1, false)
                             }, index, false, {
                                 fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                lineNumber: 1238,
+                                lineNumber: 1389,
                                 columnNumber: 15
                             }, this)) : // Random words displayed in two paragraphs (replacing original paragraphs)
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center",
-                                    style: {
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        maxWidth: '100%'
-                                    },
+                                    className: "text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center whitespace-nowrap overflow-hidden",
                                     children: line1WordArray.map((word, wordIdx)=>renderRandomWord(word, wordIdx))
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                    lineNumber: 1248,
+                                    lineNumber: 1399,
                                     columnNumber: 15
                                 }, this),
                                 line2WordArray.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center",
-                                    style: {
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        maxWidth: '100%'
-                                    },
+                                    className: "text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center whitespace-nowrap overflow-hidden",
                                     children: line2WordArray.map((word, wordIdx)=>renderRandomWord(word, wordsPerLine + wordIdx))
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                                    lineNumber: 1260,
+                                    lineNumber: 1403,
                                     columnNumber: 17
                                 }, this)
                             ]
                         }, void 0, true)
                     }, void 0, false, {
                         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                        lineNumber: 1233,
+                        lineNumber: 1384,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-                lineNumber: 1113,
+                lineNumber: 1230,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/MonkeyTypeTyping.tsx",
-        lineNumber: 1111,
+        lineNumber: 1228,
         columnNumber: 5
     }, this);
 }

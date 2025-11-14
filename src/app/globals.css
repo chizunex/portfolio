@@ -57,6 +57,21 @@
   background-color: rgba(161, 161, 170, 0.3);
 }
 
+@keyframes pulse-icon {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-icon {
+  animation: pulse-icon 1.5s ease-in-out infinite;
+  color: rgb(161 161 170);
+}
+
 /* Smooth transition for highlight movement */
 .typing-char {
   transition:
@@ -198,4 +213,14 @@ body.custom-cursor-interactive.custom-cursor-pressed .custom-cursor-point-inner 
 .button-hover-fill > * {
   position: relative;
   z-index: 2;
+}
+
+/* Hide Next.js dev tool */
+[data-nextjs-dialog],
+[data-nextjs-dialog-overlay],
+[data-nextjs-toast],
+[data-nextjs-dialog-portal],
+.__next-dev-overlay {
+  display: none !important;
+  visibility: hidden !important;
 }

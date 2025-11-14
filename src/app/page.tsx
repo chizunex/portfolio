@@ -42,6 +42,11 @@ export default function HomePage() {
           <ResumeDownload />
         </div>
       </div>
+      <footer className="absolute bottom-0 left-0 right-0 text-center py-6 z-10">
+        <p className="text-zinc-500 text-[0.67375rem] font-light">
+          Bradley Mao 2025 ©
+        </p>
+      </footer>
     </div>
   )
 }

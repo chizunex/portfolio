@@ -25,10 +25,10 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
     // Show loading on every pathname change
     setLoading(true)
     
-    // Minimum 0.5 second display time
+    // Minimum 0.3 second display time
     const timer = setTimeout(() => {
       setLoading(false)
-    }, 500)
+    }, 300)
 
     return () => clearTimeout(timer)
   }, [pathname])

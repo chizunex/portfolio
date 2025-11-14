@@ -184,6 +184,8 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
   const lastPointRef = useRef<{x: number; y: number} | null>(null)
   const pointerIdRef = useRef<number | null>(null)
   const heroBackgroundColorRef = useRef<string>('#18181b')
+  const canvasPositionRef = useRef<{left: number; top: number} | null>(null)
+  const lastSurfaceSizeRef = useRef<{width: number; height: number} | null>(null)
   const charRefs = useRef<Map<string, HTMLSpanElement>>(new Map())
   const startTimeRef = useRef<number | null>(null)
   const wpmIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -211,13 +213,100 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
     const containerRect = container.getBoundingClientRect()
     const dpr = window.devicePixelRatio || 1
 
-    canvas.width = Math.max(1, Math.round(surfaceRect.width * dpr))
-    canvas.height = Math.max(1, Math.round(surfaceRect.height * dpr))
-    canvas.style.width = `${surfaceRect.width}px`
-    canvas.style.height = `${surfaceRect.height}px`
-    canvas.style.left = `${surfaceRect.left - containerRect.left}px`
-    canvas.style.top = `${surfaceRect.top - containerRect.top}px`
-    canvas.style.position = 'absolute'
+    // Get the full surface height including any overflow or content that extends beyond viewport
+    // Use scrollHeight to ensure we cover the full surface, not just visible height
+    // Ensure canvas extends to the bottom of the viewport to cover footer area
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : surfaceRect.height + surfaceRect.top
+    const heightFromSurfaceTop = viewportHeight - surfaceRect.top
+    const surfaceFullHeight = Math.max(
+      surfaceRect.height,
+      surface instanceof HTMLElement ? surface.scrollHeight : surfaceRect.height,
+      // Ensure we cover from surface top to viewport bottom (includes footer)
+      heightFromSurfaceTop
+    )
+    const surfaceFullWidth = Math.max(
+      surfaceRect.width,
+      surface instanceof HTMLElement ? surface.scrollWidth : surfaceRect.width
+    )
+
+    // Check if surface size actually changed - if not, skip reinitialization to prevent shifts
+    const currentSurfaceSize = {width: surfaceFullWidth, height: surfaceFullHeight}
+    const sizeChanged = !lastSurfaceSizeRef.current || 
+        Math.abs(lastSurfaceSizeRef.current.width - currentSurfaceSize.width) >= 1 ||
+        Math.abs(lastSurfaceSizeRef.current.height - currentSurfaceSize.height) >= 1
+    
+    // Calculate position relative to viewport (surface position) for stability
+    // This prevents shifts when container position changes
+    const surfaceViewportLeft = surfaceRect.left
+    const surfaceViewportTop = surfaceRect.top
+    
+    // If size hasn't changed AND position is already locked, skip entirely to prevent any shifts
+    // This is the critical check - prevents ANY canvas updates during content changes
+    if (!sizeChanged && canvasPositionRef.current && canvas.style.position === 'fixed' && canvas.width > 0) {
+      // Surface size unchanged and canvas already initialized - skip completely
+      return
+    }
+    
+    if (sizeChanged) {
+      lastSurfaceSizeRef.current = currentSurfaceSize
+    } else if (!lastSurfaceSizeRef.current) {
+      // First time - store the size
+      lastSurfaceSizeRef.current = currentSurfaceSize
+    }
+
+    const newWidth = Math.max(1, Math.round(surfaceFullWidth * dpr))
+    const newHeight = Math.max(1, Math.round(surfaceFullHeight * dpr))
+    
+    // Preserve existing canvas content before resizing
+    // Convert to logical pixels for comparison
+    const oldLogicalWidth = canvas.width / dpr
+    const oldLogicalHeight = canvas.height / dpr
+    const newLogicalWidth = surfaceFullWidth
+    const newLogicalHeight = surfaceFullHeight
+    
+    let existingImageData: ImageData | null = null
+    if (canvasCtxRef.current && canvas.width > 0 && canvas.height > 0) {
+      try {
+        existingImageData = canvasCtxRef.current.getImageData(0, 0, canvas.width, canvas.height)
+      } catch {
+        // Canvas might be in invalid state
+        existingImageData = null
+      }
+    }
+
+    // Position canvas relative to viewport (surface position) instead of container
+    // This prevents shifts when container position changes
+    // Lock position once set - NEVER update unless surface size changes
+    let left: number
+    let top: number
+    
+    if (!canvasPositionRef.current) {
+      // First initialization - store the viewport position and lock it
+      canvasPositionRef.current = {left: surfaceViewportLeft, top: surfaceViewportTop}
+      left = surfaceViewportLeft
+      top = surfaceViewportTop
+    } else {
+      // ALWAYS use stored position - only recalculate if surface size changed
+      // This completely prevents shifts during content changes
+      if (sizeChanged) {
+        // Surface size changed (window resize) - update position
+        canvasPositionRef.current = {left: surfaceViewportLeft, top: surfaceViewportTop}
+        left = surfaceViewportLeft
+        top = surfaceViewportTop
+      } else {
+        // Use stored position - never recalculate during content changes
+        left = canvasPositionRef.current.left
+        top = canvasPositionRef.current.top
+      }
+    }
+
+    canvas.width = newWidth
+    canvas.height = newHeight
+    canvas.style.width = `${surfaceFullWidth}px`
+    canvas.style.height = `${surfaceFullHeight}px`
+    canvas.style.left = `${left}px`
+    canvas.style.top = `${top}px`
+    canvas.style.position = 'fixed' // Fixed positioning relative to viewport prevents shifts
 
     const ctx = canvas.getContext('2d')
     if (!ctx) {
@@ -237,8 +326,26 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
     }
 
     ctx.fillStyle = heroBackgroundColorRef.current
-    ctx.fillRect(0, 0, surfaceRect.width, surfaceRect.height)
+    ctx.fillRect(0, 0, surfaceFullWidth, surfaceFullHeight)
     canvas.style.backgroundColor = heroBackgroundColorRef.current
+
+    // Restore existing drawing if canvas was resized
+    // Only restore if sizes match (within 1px tolerance) to prevent coordinate misalignment
+    if (existingImageData && Math.abs(oldLogicalWidth - newLogicalWidth) < 1 && Math.abs(oldLogicalHeight - newLogicalHeight) < 1) {
+      try {
+        // Restore at device pixel coordinates
+        ctx.putImageData(existingImageData, 0, 0)
+      } catch {
+        // If image data doesn't match, just redraw background
+        ctx.fillStyle = heroBackgroundColorRef.current
+        ctx.fillRect(0, 0, surfaceFullWidth, surfaceFullHeight)
+      }
+    } else if (existingImageData && (oldLogicalWidth !== newLogicalWidth || oldLogicalHeight !== newLogicalHeight)) {
+      // Canvas size changed - we can't preserve the drawing perfectly, so clear it
+      // This prevents drawings from appearing in wrong positions
+      ctx.fillStyle = heroBackgroundColorRef.current
+      ctx.fillRect(0, 0, surfaceFullWidth, surfaceFullHeight)
+    }
 
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -380,8 +487,15 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
 
     initializeCanvas()
 
+    // Debounce resize handler to prevent rapid reinitializations
+    let resizeTimeout: NodeJS.Timeout | null = null
     const handleResize = () => {
-      initializeCanvas()
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout)
+      }
+      resizeTimeout = setTimeout(() => {
+        initializeCanvas()
+      }, 50) // 50ms debounce
     }
 
     let resizeObserver: ResizeObserver | null = null
@@ -407,6 +521,9 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
     window.addEventListener('pointercancel', handlePointerUp as EventListener)
 
     return () => {
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout)
+      }
       if (resizeObserver) {
         resizeObserver.disconnect()
       }
@@ -1143,6 +1260,40 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
           </div>
         )}
 
+        {/* Help Tooltip - positioned absolutely above h1, centered */}
+        {!hasStarted && (
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-center mb-4 z-[100] group"
+            style={{marginTop: '-15px'}}
+          >
+            <button
+              type="button"
+              data-draw-ignore="true"
+              className="inline-flex items-center justify-center w-8 h-8 text-zinc-400 hover:text-zinc-300 transition-colors duration-200"
+              aria-label="Help"
+            >
+              <svg
+                className="w-[1.375rem] h-[1.375rem] animate-pulse-icon"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+                />
+              </svg>
+            </button>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-[0.972rem] text-zinc-300 font-light shadow-lg whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+              Try Typing or Drawing!
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-800 border-r border-b border-zinc-700 rotate-45"></div>
+            </div>
+          </div>
+        )}
+
         {/* WPM Counter - positioned absolutely to not shift layout */}
         {hasStarted && (
           <div
@@ -1245,27 +1396,11 @@ export default function MonkeyTypeTyping({h1Text, pTexts, className = ''}: Monke
           ) : (
             // Random words displayed in two paragraphs (replacing original paragraphs)
             <>
-              <p
-                className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center"
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '100%',
-                }}
-              >
+              <p className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center whitespace-nowrap overflow-hidden">
                 {line1WordArray.map((word, wordIdx) => renderRandomWord(word, wordIdx))}
               </p>
               {line2WordArray.length > 0 && (
-                <p
-                  className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center"
-                  style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '100%',
-                  }}
-                >
+                <p className="text-xl md:text-2xl text-zinc-200 font-light leading-relaxed text-center whitespace-nowrap overflow-hidden">
                   {line2WordArray.map((word, wordIdx) =>
                     renderRandomWord(word, wordsPerLine + wordIdx),
                   )}
