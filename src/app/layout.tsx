@@ -7,6 +7,9 @@ import Navigation from '@/components/Navigation'
 export const metadata: Metadata = {
   title: 'Portfolio',
   description: 'Personal portfolio website',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({

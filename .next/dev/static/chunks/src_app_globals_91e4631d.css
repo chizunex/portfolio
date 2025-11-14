@@ -379,6 +379,10 @@ body {
   left: 50%;
 }
 
+.right-0 {
+  right: 0;
+}
+
 .right-4 {
   right: 1rem;
 }
@@ -389,10 +393,6 @@ body {
 
 .top-4 {
   top: 1rem;
-}
-
-.right-0 {
-  right: 0;
 }
 
 .-z-10 {
@@ -960,6 +960,10 @@ body {
   line-height: 1;
 }
 
+.text-\[0\.67375rem\] {
+  font-size: .67375rem;
+}
+
 .text-\[0\.972rem\] {
   font-size: .972rem;
 }
@@ -982,14 +986,6 @@ body {
 .text-xs {
   font-size: .75rem;
   line-height: 1rem;
-}
-
-.text-\[0\.6125rem\] {
-  font-size: .6125rem;
-}
-
-.text-\[0\.67375rem\] {
-  font-size: .67375rem;
 }
 
 .font-light {
