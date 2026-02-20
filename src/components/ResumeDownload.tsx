@@ -6,6 +6,10 @@ export default async function ResumeDownload() {
   let resume: Resume | null = null
 
   try {
+    if (!client) {
+      console.log('Sanity client not configured')
+      return null
+    }
     const result = await client.fetch<Resume | null>(resumeQuery, {}, { cache: 'no-store' })
     console.log('Raw resume fetch result:', JSON.stringify(result, null, 2))
     

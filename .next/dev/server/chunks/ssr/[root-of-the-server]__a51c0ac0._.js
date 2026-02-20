@@ -20,14 +20,18 @@ module.exports = mod;
 
 __turbopack_context__.s([
     "client",
-    ()=>client
+    ()=>client,
+    "sanityConfigured",
+    ()=>sanityConfigured
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$sanity$2f$client$2f$dist$2f$index$2e$browser$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/@sanity/client/dist/index.browser.js [app-rsc] (ecmascript) <locals>");
 ;
 const projectId = ("TURBOPACK compile-time value", "ipnaqv9u");
 const dataset = ("TURBOPACK compile-time value", "production");
-if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
-;
+const sanityConfigured = !!(projectId && dataset && projectId !== 'your-project-id' && !projectId.includes('your-'));
+if (!sanityConfigured) {
+    console.warn('Sanity not configured - content features disabled');
+}
 // Validate and set API version - must be '1' or date in 'YYYY-MM-DD' format
 const apiVersionEnv = ("TURBOPACK compile-time value", "2024-01-01");
 let apiVersion = '2024-01-01' // Default fallback
@@ -40,12 +44,12 @@ if ("TURBOPACK compile-time truthy", 1) {
         console.warn(`Invalid API version format: ${apiVersionEnv}. Using default: ${apiVersion}`);
     }
 }
-const client = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$sanity$2f$client$2f$dist$2f$index$2e$browser$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["createClient"])({
+const client = sanityConfigured ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$sanity$2f$client$2f$dist$2f$index$2e$browser$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["createClient"])({
     projectId: projectId,
     dataset: dataset,
     apiVersion: apiVersion,
     useCdn: false
-});
+}) : null;
 }),
 "[project]/src/sanity/resumeQuery.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
 "use strict";

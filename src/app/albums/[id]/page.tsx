@@ -1,4 +1,4 @@
-import { client } from '@/sanity/client'
+import { client, sanityConfigured } from '@/sanity/client'
 import { albumsQuery } from '@/sanity/albumsQuery'
 import { Album } from '@/types/Album'
 import Image from 'next/image'
@@ -15,6 +15,11 @@ export const revalidate = 0 // Disable caching - fetch fresh data on every reque
 
 export default async function AlbumPage({ params }: AlbumPageProps) {
   const { id } = await params
+
+  if (!sanityConfigured || !client) {
+    notFound()
+  }
+
   const albums: Album[] = await client.fetch<Album[]>(albumsQuery, {}, { cache: 'no-store' })
   const album = albums.find((a) => a._id === id)
 

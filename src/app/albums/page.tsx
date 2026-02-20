@@ -1,4 +1,4 @@
-import { client } from '@/sanity/client'
+import { client, sanityConfigured } from '@/sanity/client'
 import { albumsQuery } from '@/sanity/albumsQuery'
 import { Album } from '@/types/Album'
 import AlbumCard from '@/components/AlbumCard'
@@ -8,15 +8,13 @@ export const revalidate = 0 // Disable caching - fetch fresh data on every reque
 export default async function AlbumsPage() {
   let albums: Album[] = []
 
-  try {
-    albums = await client.fetch<Album[]>(albumsQuery, {}, { cache: 'no-store' })
-    console.log('Fetched albums:', JSON.stringify(albums, null, 2))
-    console.log('Number of albums:', albums.length)
-  } catch (error) {
-    console.error('Error fetching albums:', error)
-    if (error instanceof Error) {
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
+  if (sanityConfigured && client) {
+    try {
+      albums = await client.fetch<Album[]>(albumsQuery, {}, { cache: 'no-store' })
+      console.log('Fetched albums:', JSON.stringify(albums, null, 2))
+      console.log('Number of albums:', albums.length)
+    } catch (error) {
+      console.error('Error fetching albums:', error)
     }
   }
 

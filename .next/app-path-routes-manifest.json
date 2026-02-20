@@ -5,6 +5,7 @@
   "/albums/page": "/albums",
   "/api/contact/route": "/api/contact",
   "/contact/page": "/contact",
+  "/my-car/page": "/my-car",
   "/page": "/",
   "/projects/page": "/projects"
 }

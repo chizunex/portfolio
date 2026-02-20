@@ -1,4 +1,4 @@
-import { client } from '@/sanity/client'
+import { client, sanityConfigured } from '@/sanity/client'
 import { projectsQuery } from '@/sanity/query'
 import { Project } from '@/types/Project'
 import ProjectCard from '@/components/ProjectCard'
@@ -7,16 +7,14 @@ export const revalidate = 0 // Disable caching - fetch fresh data on every reque
 
 export default async function ProjectsPage() {
   let projects: Project[] = []
-  
-  try {
-    projects = await client.fetch<Project[]>(projectsQuery, {}, { cache: 'no-store' })
-    console.log('Fetched projects:', JSON.stringify(projects, null, 2))
-    console.log('Number of projects:', projects.length)
-  } catch (error) {
-    console.error('Error fetching projects:', error)
-    if (error instanceof Error) {
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
+
+  if (sanityConfigured && client) {
+    try {
+      projects = await client.fetch<Project[]>(projectsQuery, {}, { cache: 'no-store' })
+      console.log('Fetched projects:', JSON.stringify(projects, null, 2))
+      console.log('Number of projects:', projects.length)
+    } catch (error) {
+      console.error('Error fetching projects:', error)
     }
   }
 

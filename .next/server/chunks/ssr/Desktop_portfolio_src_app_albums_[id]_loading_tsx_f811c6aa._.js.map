@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../../../Desktop/portfolio/src/app/albums/%5Bid%5D/loading.tsx"],"sourcesContent":["import LoadingSpinner from '@/components/LoadingSpinner'\n\nexport default function Loading() {\n  return <LoadingSpinner />\n}\n\n"],"names":[],"mappings":"wDAAA,EAAA,EAAA,CAAA,CAAA,OAEe,SAAS,IACtB,MAAO,CAAA,EAAA,EAAA,GAAA,EAAC,EAAA,OAAc,CAAA,CAAA,EACxB"}

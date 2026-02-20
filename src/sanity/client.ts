@@ -3,11 +3,11 @@ import { createClient } from 'next-sanity'
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
 
-if (!projectId || !dataset) {
-  console.error('Missing Sanity environment variables:', {
-    projectId: projectId ? '✓' : '✗',
-    dataset: dataset ? '✓' : '✗',
-  })
+// Check if Sanity is properly configured
+export const sanityConfigured = !!(projectId && dataset && projectId !== 'your-project-id' && !projectId.includes('your-'))
+
+if (!sanityConfigured) {
+  console.warn('Sanity not configured - content features disabled')
 }
 
 // Validate and set API version - must be '1' or date in 'YYYY-MM-DD' format
@@ -23,10 +23,13 @@ if (apiVersionEnv) {
   }
 }
 
-export const client = createClient({
-  projectId: projectId!,
-  dataset: dataset!,
-  apiVersion: apiVersion,
-  useCdn: false,
-})
+// Create client only if configured
+export const client = sanityConfigured
+  ? createClient({
+      projectId: projectId!,
+      dataset: dataset!,
+      apiVersion: apiVersion,
+      useCdn: false,
+    })
+  : null
 

@@ -5,6 +5,7 @@
   "/albums/page": "app/albums/page.js",
   "/api/contact/route": "app/api/contact/route.js",
   "/contact/page": "app/contact/page.js",
+  "/my-car/page": "app/my-car/page.js",
   "/page": "app/page.js",
   "/projects/page": "app/projects/page.js"
 }
